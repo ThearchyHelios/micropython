@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <rtdevice.h>
 
 #include "py/runtime.h"
 #include "py/mphal.h"

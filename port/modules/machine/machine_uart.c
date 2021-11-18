@@ -150,8 +150,13 @@ STATIC mp_obj_t machine_uart_init_helper(machine_uart_obj_t *self, size_t n_args
     }
 
     //buffer size
-    config.bufsz = args.read_buf_len.u_int;
+#if defined(RT_USING_SERIAL_V1)
+    config.bufsz        = args.read_buf_len.u_int;
 
+#elif defined(RT_USING_SERIAL_V2)
+    config.rx_bufsz     = args.read_buf_len.u_int;
+    config.tx_bufsz     = args.read_buf_len.u_int;
+#endif
     rt_device_control((struct rt_device *) uart_p, RT_DEVICE_CTRL_CONFIG, &config);
     return mp_const_none;
 }
