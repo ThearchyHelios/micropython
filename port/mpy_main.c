@@ -29,7 +29,9 @@
 #include <string.h>
 #include <rtthread.h>
 #ifdef RT_USING_DFS
-#include <dfs_posix.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <dfs.h>
 #endif
 #include <py/compile.h>
 #include <py/runtime.h>
