@@ -66,13 +66,19 @@ STATIC mp_obj_t mqtt_check_msg(mp_obj_t self_in);
 STATIC mp_obj_t mqtt_wait_msg(mp_obj_t self_in);
 
 STATIC void mqtt_write_byte(mp_obj_mqtt_client_t *self, uint8_t b) {
-    mp_obj_t buf = mp_obj_new_bytes(&b, 1);
-    mp_stream_write_exactly(self->sock, buf, 1, MP_STREAM_RW_WRITE);
+    int errcode;
+    mp_stream_write_exactly(self->sock, &b, 1, &errcode);
+    if (errcode != 0) {
+        mp_raise_OSError(errcode);
+    }
 }
 
 STATIC void mqtt_write_bytes(mp_obj_mqtt_client_t *self, const uint8_t *buf, size_t len) {
-    mp_obj_t buf_obj = mp_obj_new_bytes(buf, len);
-    mp_stream_write_exactly(self->sock, buf_obj, len, MP_STREAM_RW_WRITE);
+    int errcode;
+    mp_stream_write_exactly(self->sock, (void *)buf, len, &errcode);
+    if (errcode != 0) {
+        mp_raise_OSError(errcode);
+    }
 }
 
 STATIC void mqtt_write_string(mp_obj_mqtt_client_t *self, mp_obj_t str) {
@@ -85,12 +91,20 @@ STATIC void mqtt_write_string(mp_obj_mqtt_client_t *self, mp_obj_t str) {
 
 STATIC uint8_t mqtt_read_byte(mp_obj_mqtt_client_t *self) {
     uint8_t b;
-    mp_stream_read_exactly(self->sock, &b, 1, MP_STREAM_RW_READ);
+    int errcode;
+    mp_stream_read_exactly(self->sock, &b, 1, &errcode);
+    if (errcode != 0) {
+        mp_raise_OSError(errcode);
+    }
     return b;
 }
 
 STATIC void mqtt_read_bytes(mp_obj_mqtt_client_t *self, uint8_t *buf, size_t len) {
-    mp_stream_read_exactly(self->sock, buf, len, MP_STREAM_RW_READ);
+    int errcode;
+    mp_stream_read_exactly(self->sock, buf, len, &errcode);
+    if (errcode != 0) {
+        mp_raise_OSError(errcode);
+    }
 }
 
 STATIC mp_obj_t mqtt_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
@@ -137,7 +151,7 @@ STATIC mp_obj_t mqtt_connect(size_t n_args, const mp_obj_t *args) {
     mp_call_function_1(connect_func, addr_tuple);
     
     size_t client_id_len;
-    const char *client_id = mp_obj_str_get_data(self->client_id, &client_id_len);
+    mp_obj_str_get_data(self->client_id, &client_id_len);
     
     uint8_t connect_flags = 0;
     if (clean) {
@@ -353,7 +367,9 @@ STATIC mp_obj_t mqtt_check_msg(mp_obj_t self_in) {
     mp_obj_t result = mp_const_none;
     
     uint8_t cmd;
-    if (mp_stream_read_exactly(self->sock, &cmd, 1, MP_STREAM_RW_READ | MP_STREAM_RW_NONBLOCK) == 1) {
+    int errcode;
+    mp_uint_t ret = mp_stream_rw(self->sock, &cmd, 1, &errcode, MP_STREAM_RW_READ);
+    if (ret == 1) {
         if ((cmd & 0xF0) == 0x30) {
             uint8_t sz = mqtt_read_byte(self);
             size_t topic_len = (mqtt_read_byte(self) << 8) | mqtt_read_byte(self);
@@ -363,7 +379,8 @@ STATIC mp_obj_t mqtt_check_msg(mp_obj_t self_in) {
             
             size_t msg_len = sz - topic_len - 2;
             if ((cmd & 0x06) != 0) {
-                uint16_t pid = (mqtt_read_byte(self) << 8) | mqtt_read_byte(self);
+                mqtt_read_byte(self);  // pid high byte
+                mqtt_read_byte(self);  // pid low byte
                 msg_len -= 2;
             }
             
@@ -408,7 +425,8 @@ STATIC mp_obj_t mqtt_wait_msg(mp_obj_t self_in) {
         
         size_t msg_len = sz - topic_len - 2;
         if ((cmd & 0x06) != 0) {
-            uint16_t pid = (mqtt_read_byte(self) << 8) | mqtt_read_byte(self);
+            mqtt_read_byte(self);  // pid high byte
+            mqtt_read_byte(self);  // pid low byte
             msg_len -= 2;
         }
         

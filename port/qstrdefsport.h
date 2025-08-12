@@ -1,1 +1,20 @@
 // qstrs specific to this port
+
+// umqtt module QSTRs
+Q(umqtt)
+Q(MQTTClient)
+Q(connect)
+Q(disconnect)
+Q(ping)
+Q(publish)
+Q(subscribe)
+Q(set_callback)
+Q(set_last_will)
+Q(check_msg)
+Q(wait_msg)
+Q(topic)
+Q(msg)
+Q(retain)
+Q(qos)
+Q(setblocking)
+Q(close)
