@@ -235,6 +235,10 @@
 #define MICROPY_PY_UJSON            (1)
 #endif
 
+#ifdef MICROPYTHON_USING_UMQTT
+#define MICROPY_PY_UMQTT            (1)
+#endif
+
 #ifdef MICROPYTHON_USING_URE
 #define MICROPY_PY_URE              (1)
 #endif
@@ -452,6 +456,12 @@ extern const struct _mp_obj_module_t mp_module_userfunc;
 #define MODUJSON_PORT_BUILTIN_MODULE_WEAK_LINKS
 #endif /* MICROPY_PY_UJSON */
 
+#ifdef MICROPYTHON_USING_UMQTT
+#define MODUMQTT_PORT_BUILTIN_MODULE_WEAK_LINKS            { MP_ROM_QSTR(MP_QSTR_umqtt), MP_ROM_PTR(&mp_module_umqtt ) },
+#else
+#define MODUMQTT_PORT_BUILTIN_MODULE_WEAK_LINKS
+#endif /* MICROPY_PY_UMQTT */
+
 #ifdef MICROPYTHON_USING_URANDOM
 #define MODURANDOM_PORT_BUILTIN_MODULE_WEAK_LINKS          { MP_ROM_QSTR(MP_QSTR_random), MP_ROM_PTR(&mp_module_urandom ) },
 #else
@@ -539,6 +549,7 @@ extern const struct _mp_obj_module_t mp_module_userfunc;
     MODUHEAPQ_PORT_BUILTIN_MODULE_WEAK_LINKS \
     MODUIO_PORT_BUILTIN_MODULE_WEAK_LINKS \
     MODUJSON_PORT_BUILTIN_MODULE_WEAK_LINKS \
+    MODUMQTT_PORT_BUILTIN_MODULE_WEAK_LINKS \
     MODURANDOM_PORT_BUILTIN_MODULE_WEAK_LINKS \
     MODURE_PORT_BUILTIN_MODULE_WEAK_LINKS \
     MODUSELECT_PORT_BUILTIN_MODULE_WEAK_LINKS \
