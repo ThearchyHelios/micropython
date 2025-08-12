@@ -58,7 +58,7 @@ STATIC mp_obj_t mqtt_make_new(const mp_obj_type_t *type, size_t n_args, size_t n
 STATIC mp_obj_t mqtt_connect(size_t n_args, const mp_obj_t *args);
 STATIC mp_obj_t mqtt_disconnect(mp_obj_t self_in);
 STATIC mp_obj_t mqtt_ping(mp_obj_t self_in);
-STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args);
+STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args);
 STATIC mp_obj_t mqtt_subscribe(mp_obj_t self_in, mp_obj_t topic_in, mp_obj_t qos_in);
 STATIC mp_obj_t mqtt_set_callback(mp_obj_t self_in, mp_obj_t cb_in);
 STATIC mp_obj_t mqtt_set_last_will(size_t n_args, const mp_obj_t *args);
@@ -246,25 +246,24 @@ STATIC mp_obj_t mqtt_ping(mp_obj_t self_in) {
     return mp_const_none;
 }
 
-STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
-    enum { ARG_topic, ARG_msg, ARG_retain, ARG_qos };
-    static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_topic, MP_ARG_REQUIRED | MP_ARG_OBJ, {.u_obj = mp_const_none} },
-        { MP_QSTR_msg, MP_ARG_REQUIRED | MP_ARG_OBJ, {.u_obj = mp_const_none} },
-        { MP_QSTR_retain, MP_ARG_BOOL, {.u_bool = false} },
-        { MP_QSTR_qos, MP_ARG_INT, {.u_int = 0} },
-    };
-    
+STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args) {
     mp_obj_mqtt_client_t *self = MP_OBJ_TO_PTR(args[0]);
-    mp_arg_val_t vals[MP_ARRAY_SIZE(allowed_args)];
-    mp_arg_parse_all(n_args - 1, args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, vals);
+    mp_obj_t topic = args[1];
+    mp_obj_t msg = args[2];
+    
+    bool retain = false;
+    uint8_t qos = 0;
+    
+    if (n_args > 3) {
+        retain = mp_obj_is_true(args[3]);
+    }
+    if (n_args > 4) {
+        qos = mp_obj_get_int(args[4]) & 0x03;
+    }
     
     size_t topic_len, msg_len;
-    const char *topic = mp_obj_str_get_data(vals[ARG_topic].u_obj, &topic_len);
-    const char *msg = mp_obj_str_get_data(vals[ARG_msg].u_obj, &msg_len);
-    
-    uint8_t qos = vals[ARG_qos].u_int & 0x03;
-    bool retain = vals[ARG_retain].u_bool;
+    const char *topic_str = mp_obj_str_get_data(topic, &topic_len);
+    const char *msg_str = mp_obj_str_get_data(msg, &msg_len);
     
     uint8_t cmd = 0x30 | (qos << 1);
     if (retain) {
@@ -286,7 +285,7 @@ STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args, mp_map_t *kw_a
     
     mqtt_write_byte(self, topic_len >> 8);
     mqtt_write_byte(self, topic_len & 0xFF);
-    mqtt_write_bytes(self, (const uint8_t *)topic, topic_len);
+    mqtt_write_bytes(self, (const uint8_t *)topic_str, topic_len);
     
     if (qos > 0) {
         self->pid = (self->pid + 1) & 0xFFFF;
@@ -294,7 +293,7 @@ STATIC mp_obj_t mqtt_publish(size_t n_args, const mp_obj_t *args, mp_map_t *kw_a
         mqtt_write_byte(self, self->pid & 0xFF);
     }
     
-    mqtt_write_bytes(self, (const uint8_t *)msg, msg_len);
+    mqtt_write_bytes(self, (const uint8_t *)msg_str, msg_len);
     
     if (qos == 1) {
         uint8_t resp[4];
@@ -455,7 +454,7 @@ STATIC mp_obj_t mqtt_wait_msg(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_connect_obj, 1, 2, mqtt_connect);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_disconnect_obj, mqtt_disconnect);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_ping_obj, mqtt_ping);
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(mqtt_publish_obj, 1, mqtt_publish);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_publish_obj, 3, 5, mqtt_publish);
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(mqtt_subscribe_obj, mqtt_subscribe);
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(mqtt_set_callback_obj, mqtt_set_callback);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_set_last_will_obj, 3, 5, mqtt_set_last_will);
@@ -465,26 +464,26 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_wait_msg_obj, mqtt_wait_msg);
 STATIC const mp_rom_map_elem_t mqtt_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_connect), MP_ROM_PTR(&mqtt_connect_obj) },
     { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&mqtt_disconnect_obj) },
-    { MP_ROM_QSTR(MP_QSTR_ping), MP_ROM_PTR(&mqtt_ping_obj) },
-    { MP_ROM_QSTR(MP_QSTR_publish), MP_ROM_PTR(&mqtt_publish_obj) },
-    { MP_ROM_QSTR(MP_QSTR_subscribe), MP_ROM_PTR(&mqtt_subscribe_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_callback), MP_ROM_PTR(&mqtt_set_callback_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_last_will), MP_ROM_PTR(&mqtt_set_last_will_obj) },
-    { MP_ROM_QSTR(MP_QSTR_check_msg), MP_ROM_PTR(&mqtt_check_msg_obj) },
-    { MP_ROM_QSTR(MP_QSTR_wait_msg), MP_ROM_PTR(&mqtt_wait_msg_obj) },
+    { MP_ROM_QSTR(qstr_from_str("ping")), MP_ROM_PTR(&mqtt_ping_obj) },
+    { MP_ROM_QSTR(qstr_from_str("publish")), MP_ROM_PTR(&mqtt_publish_obj) },
+    { MP_ROM_QSTR(qstr_from_str("subscribe")), MP_ROM_PTR(&mqtt_subscribe_obj) },
+    { MP_ROM_QSTR(qstr_from_str("set_callback")), MP_ROM_PTR(&mqtt_set_callback_obj) },
+    { MP_ROM_QSTR(qstr_from_str("set_last_will")), MP_ROM_PTR(&mqtt_set_last_will_obj) },
+    { MP_ROM_QSTR(qstr_from_str("check_msg")), MP_ROM_PTR(&mqtt_check_msg_obj) },
+    { MP_ROM_QSTR(qstr_from_str("wait_msg")), MP_ROM_PTR(&mqtt_wait_msg_obj) },
 };
 STATIC MP_DEFINE_CONST_DICT(mqtt_locals_dict, mqtt_locals_dict_table);
 
 STATIC const mp_obj_type_t mqtt_client_type = {
     { &mp_type_type },
-    .name = MP_QSTR_MQTTClient,
+    .name = qstr_from_str("MQTTClient"),
     .make_new = mqtt_make_new,
     .locals_dict = (mp_obj_dict_t*)&mqtt_locals_dict,
 };
 
 STATIC const mp_rom_map_elem_t mp_module_umqtt_globals_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_umqtt) },
-    { MP_ROM_QSTR(MP_QSTR_MQTTClient), MP_ROM_PTR(&mqtt_client_type) },
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(qstr_from_str("umqtt")) },
+    { MP_ROM_QSTR(qstr_from_str("MQTTClient")), MP_ROM_PTR(&mqtt_client_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(mp_module_umqtt_globals, mp_module_umqtt_globals_table);
@@ -494,6 +493,6 @@ const mp_obj_module_t mp_module_umqtt = {
     .globals = (mp_obj_dict_t*)&mp_module_umqtt_globals,
 };
 
-MP_REGISTER_MODULE(MP_QSTR_umqtt, mp_module_umqtt, MICROPY_PY_UMQTT);
+MP_REGISTER_MODULE(qstr_from_str("umqtt"), mp_module_umqtt, MICROPY_PY_UMQTT);
 
 #endif // MICROPY_PY_UMQTT
