@@ -456,7 +456,7 @@ extern const struct _mp_obj_module_t mp_module_userfunc;
 #define MODUJSON_PORT_BUILTIN_MODULE_WEAK_LINKS
 #endif /* MICROPY_PY_UJSON */
 
-#ifdef MICROPYTHON_USING_UMQTT
+#ifdef MICROPY_PY_UMQTT
 #define MODUMQTT_PORT_BUILTIN_MODULE_WEAK_LINKS            { MP_ROM_QSTR(MP_QSTR_umqtt), MP_ROM_PTR(&mp_module_umqtt ) },
 #else
 #define MODUMQTT_PORT_BUILTIN_MODULE_WEAK_LINKS
