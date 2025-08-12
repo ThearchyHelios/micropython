@@ -139,15 +139,25 @@ STATIC mp_obj_t mqtt_make_new(const mp_obj_type_t *type, size_t n_args, size_t n
 
 STATIC mp_obj_t mqtt_connect(size_t n_args, const mp_obj_t *args) {
     mp_obj_mqtt_client_t *self = MP_OBJ_TO_PTR(args[0]);
+    
+    // args：clean_session (optional), timeout (optional)
     bool clean = (n_args > 1) ? mp_obj_is_true(args[1]) : self->clean_session;
+    mp_int_t timeout = (n_args > 2) ? mp_obj_get_int(args[2]) : -1; // -1 : default timeout
     
     mp_obj_t socket_module = mp_import_name(MP_QSTR_usocket, mp_const_none, MP_OBJ_NEW_SMALL_INT(0));
     mp_obj_t socket_func = mp_load_attr(socket_module, MP_QSTR_socket);
     self->sock = mp_call_function_0(socket_func);
     
+    if (timeout > 0) {
+        mp_obj_t settimeout_func = mp_load_attr(self->sock, MP_QSTR_settimeout);
+        mp_obj_t timeout_obj = mp_obj_new_int(timeout);
+        mp_call_function_1(settimeout_func, timeout_obj);
+    }
+    
     mp_obj_t connect_func = mp_load_attr(self->sock, MP_QSTR_connect);
     mp_obj_t addr[2] = { self->server, MP_OBJ_NEW_SMALL_INT(self->port) };
     mp_obj_t addr_tuple = mp_obj_new_tuple(2, addr);
+    
     mp_call_function_1(connect_func, addr_tuple);
     
     size_t client_id_len;
@@ -451,7 +461,7 @@ STATIC mp_obj_t mqtt_wait_msg(mp_obj_t self_in) {
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_connect_obj, 1, 2, mqtt_connect);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_connect_obj, 1, 3, mqtt_connect);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_disconnect_obj, mqtt_disconnect);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_ping_obj, mqtt_ping);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mqtt_publish_obj, 3, 5, mqtt_publish);
