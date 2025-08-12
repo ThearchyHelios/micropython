@@ -185,6 +185,9 @@ STATIC const mp_rom_map_elem_t mp_builtin_module_table[] = {
     #if MICROPY_PY_UJSON
     { MP_ROM_QSTR(MP_QSTR_ujson), MP_ROM_PTR(&mp_module_ujson) },
     #endif
+    #if MICROPY_PY_UMQTT
+    { MP_ROM_QSTR(MP_QSTR_umqtt), MP_ROM_PTR(&mp_module_umqtt) },
+    #endif
     #if MICROPY_PY_URE
     { MP_ROM_QSTR(MP_QSTR_ure), MP_ROM_PTR(&mp_module_ure) },
     #endif
