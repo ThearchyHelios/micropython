@@ -464,26 +464,26 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(mqtt_wait_msg_obj, mqtt_wait_msg);
 STATIC const mp_rom_map_elem_t mqtt_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_connect), MP_ROM_PTR(&mqtt_connect_obj) },
     { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&mqtt_disconnect_obj) },
-    { MP_ROM_QSTR(qstr_from_str("ping")), MP_ROM_PTR(&mqtt_ping_obj) },
-    { MP_ROM_QSTR(qstr_from_str("publish")), MP_ROM_PTR(&mqtt_publish_obj) },
-    { MP_ROM_QSTR(qstr_from_str("subscribe")), MP_ROM_PTR(&mqtt_subscribe_obj) },
-    { MP_ROM_QSTR(qstr_from_str("set_callback")), MP_ROM_PTR(&mqtt_set_callback_obj) },
-    { MP_ROM_QSTR(qstr_from_str("set_last_will")), MP_ROM_PTR(&mqtt_set_last_will_obj) },
-    { MP_ROM_QSTR(qstr_from_str("check_msg")), MP_ROM_PTR(&mqtt_check_msg_obj) },
-    { MP_ROM_QSTR(qstr_from_str("wait_msg")), MP_ROM_PTR(&mqtt_wait_msg_obj) },
+    { MP_ROM_QSTR(MP_QSTR_ping), MP_ROM_PTR(&mqtt_ping_obj) },
+    { MP_ROM_QSTR(MP_QSTR_publish), MP_ROM_PTR(&mqtt_publish_obj) },
+    { MP_ROM_QSTR(MP_QSTR_subscribe), MP_ROM_PTR(&mqtt_subscribe_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_callback), MP_ROM_PTR(&mqtt_set_callback_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_last_will), MP_ROM_PTR(&mqtt_set_last_will_obj) },
+    { MP_ROM_QSTR(MP_QSTR_check_msg), MP_ROM_PTR(&mqtt_check_msg_obj) },
+    { MP_ROM_QSTR(MP_QSTR_wait_msg), MP_ROM_PTR(&mqtt_wait_msg_obj) },
 };
 STATIC MP_DEFINE_CONST_DICT(mqtt_locals_dict, mqtt_locals_dict_table);
 
 STATIC const mp_obj_type_t mqtt_client_type = {
     { &mp_type_type },
-    .name = qstr_from_str("MQTTClient"),
+    .name = MP_QSTR_MQTTClient,
     .make_new = mqtt_make_new,
     .locals_dict = (mp_obj_dict_t*)&mqtt_locals_dict,
 };
 
 STATIC const mp_rom_map_elem_t mp_module_umqtt_globals_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(qstr_from_str("umqtt")) },
-    { MP_ROM_QSTR(qstr_from_str("MQTTClient")), MP_ROM_PTR(&mqtt_client_type) },
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_umqtt) },
+    { MP_ROM_QSTR(MP_QSTR_MQTTClient), MP_ROM_PTR(&mqtt_client_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(mp_module_umqtt_globals, mp_module_umqtt_globals_table);
