@@ -780,6 +780,17 @@ QDEF(MP_QSTR_do_handshake, (const byte*)"\x86\x0c" "do_handshake")
 QDEF(MP_QSTR___ne__, (const byte*)"\x0e\x06" "__ne__")
 QDEF(MP_QSTR_i, (const byte*)"\xcc\x01" "i")
 
+// MQTT module qstrings
+QDEF(MP_QSTR_umqtt, (const byte*)"\xac\x05" "umqtt")
+QDEF(MP_QSTR_MQTTClient, (const byte*)"\x01\x0a" "MQTTClient")
+QDEF(MP_QSTR_ping, (const byte*)"\x55\x04" "ping")
+QDEF(MP_QSTR_publish, (const byte*)"\x5c\x07" "publish")
+QDEF(MP_QSTR_subscribe, (const byte*)"\x0d\x09" "subscribe")
+QDEF(MP_QSTR_set_callback, (const byte*)"\x91\x0c" "set_callback")
+QDEF(MP_QSTR_set_last_will, (const byte*)"\x93\x0d" "set_last_will")
+QDEF(MP_QSTR_check_msg, (const byte*)"\x05\x09" "check_msg")
+QDEF(MP_QSTR_wait_msg, (const byte*)"\xe8\x08" "wait_msg")
+
 #if MICROPY_USER_EXTMODS
 #include "qstrdefs.user.extmods.h"
 #endif

@@ -141,11 +141,11 @@ STATIC mp_obj_t mqtt_connect(size_t n_args, const mp_obj_t *args) {
     mp_obj_mqtt_client_t *self = MP_OBJ_TO_PTR(args[0]);
     bool clean = (n_args > 1) ? mp_obj_is_true(args[1]) : self->clean_session;
     
-    mp_obj_t socket_module = mp_import_name(qstr_from_str("usocket"), mp_const_none, MP_OBJ_NEW_SMALL_INT(0));
-    mp_obj_t socket_func = mp_load_attr(socket_module, qstr_from_str("socket"));
+    mp_obj_t socket_module = mp_import_name(MP_QSTR_usocket, mp_const_none, MP_OBJ_NEW_SMALL_INT(0));
+    mp_obj_t socket_func = mp_load_attr(socket_module, MP_QSTR_socket);
     self->sock = mp_call_function_0(socket_func);
     
-    mp_obj_t connect_func = mp_load_attr(self->sock, qstr_from_str("connect"));
+    mp_obj_t connect_func = mp_load_attr(self->sock, MP_QSTR_connect);
     mp_obj_t addr[2] = { self->server, MP_OBJ_NEW_SMALL_INT(self->port) };
     mp_obj_t addr_tuple = mp_obj_new_tuple(2, addr);
     mp_call_function_1(connect_func, addr_tuple);
@@ -231,7 +231,7 @@ STATIC mp_obj_t mqtt_disconnect(mp_obj_t self_in) {
     uint8_t disconnect[] = {0xE0, 0x00};
     mqtt_write_bytes(self, disconnect, sizeof(disconnect));
     
-    mp_obj_t close_func = mp_load_attr(self->sock, qstr_from_str("close"));
+    mp_obj_t close_func = mp_load_attr(self->sock, MP_QSTR_close);
     mp_call_function_0(close_func);
     
     return mp_const_none;
@@ -360,7 +360,7 @@ STATIC mp_obj_t mqtt_set_last_will(size_t n_args, const mp_obj_t *args) {
 STATIC mp_obj_t mqtt_check_msg(mp_obj_t self_in) {
     mp_obj_mqtt_client_t *self = MP_OBJ_TO_PTR(self_in);
     
-    mp_obj_t setblocking_func = mp_load_attr(self->sock, qstr_from_str("setblocking"));
+    mp_obj_t setblocking_func = mp_load_attr(self->sock, MP_QSTR_setblocking);
     mp_call_function_1(setblocking_func, mp_obj_new_bool(false));
     
     mp_obj_t result = mp_const_none;
@@ -493,6 +493,6 @@ const mp_obj_module_t mp_module_umqtt = {
     .globals = (mp_obj_dict_t*)&mp_module_umqtt_globals,
 };
 
-MP_REGISTER_MODULE(qstr_from_str("umqtt"), mp_module_umqtt, MICROPY_PY_UMQTT);
+MP_REGISTER_MODULE(MP_QSTR_umqtt, mp_module_umqtt, MICROPY_PY_UMQTT);
 
 #endif // MICROPY_PY_UMQTT
